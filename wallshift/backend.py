@@ -18,7 +18,7 @@ def outputs() -> list[str]:
 def available() -> list[str]:
     found = []
     if shutil.which("swww"): found.append("swww")
-    if shutil.which("hyprctl"): found.append("hyprpaper")
+    if shutil.which("hyprpaper"): found.append("hyprpaper")
     return found
 
 def detect(preferred: str = "auto") -> str:
