@@ -1,50 +1,65 @@
 # WallShift
 
-GTK4 wallpaper manager for Hyprland. It supports **swww** and **hyprpaper**,
-per-output images, automatic rotation through a systemd user timer, animated
-transitions with awww/swww, and safe color-theme exports for Hyprland, Waybar, and
-Kitty.
+Gestionnaire GTK4 de fonds d’écran pour Hyprland : fond différent par écran,
+rotation automatique, transitions et export de couleurs.
 
-## Arch dependencies
+## Fonctions
 
-```bash
-sudo pacman -S python python-gobject gtk4 python-pillow awww hyprpaper
-```
+- Fonds d’écran distincts pour chaque sortie Hyprland ;
+- backends `awww`, `swww` et `hyprpaper` ;
+- galerie d’aperçus d’un dossier d’images ;
+- rotation automatique avec un timer systemd utilisateur ;
+- export de palettes pour Hyprland, Waybar et Kitty ;
+- aucune modification automatique de vos fichiers de configuration existants.
 
-Use `awww`, `swww`, or `hyprpaper`. WallShift prioritises **awww** (the modern
-successor to swww), then swww, then hyprpaper. Start the selected daemon before
-applying wallpapers, for example: `awww-daemon &`. Selecting a wallpaper folder
-automatically preselects its first supported image; Apply can also choose an
-image from that folder when none is selected.
-
-## Run from source
+## Installation sur Arch Linux
 
 ```bash
-PYTHONPATH=. python -m wallshift.app
+yay -S wallshift-git
 ```
 
-## Theme exports
+Installez au moins un backend. `awww` est recommandé :
 
-WallShift writes files—without altering existing configuration—to:
+```bash
+sudo pacman -S awww python-pillow
+```
+
+Les alternatives sont :
+
+```bash
+sudo pacman -S swww
+# ou
+sudo pacman -S hyprpaper
+```
+
+## Utilisation
+
+Démarrez le daemon awww si vous l’utilisez :
+
+```bash
+awww-daemon &
+```
+
+Lancez ensuite :
+
+```bash
+wallshift
+```
+
+1. Sélectionnez le backend et l’écran ;
+2. choisissez un dossier ou une image ;
+3. cliquez sur une miniature puis sur **Apply to selected output** ;
+4. activez la rotation si souhaité.
+
+Le timer est automatiquement installé lors de la sélection d’un dossier. Pour
+le vérifier :
+
+```bash
+systemctl --user status wallshift-rotate.timer
+```
+
+Les couleurs exportées sont enregistrées dans :
 
 ```text
 ~/.config/wallshift/themes/
 ```
-
-Import `hyprland-colors.conf`, `waybar-colors.css`, or `kitty-colors.conf`
-from your own configuration.
-
-## Rotation timer
-
-Choosing a wallpaper folder automatically enables WallShift’s user-level
-systemd timer. The first rotation runs about 15 seconds later, then follows the
-selected interval. Changing the interval rewrites and reloads the timer.
-
-Check it with:
-
-```bash
-systemctl --user status wallshift-rotate.timer
-journalctl --user -u wallshift-rotate.service -n 30 --no-pager
-```
-
-Turn off **Rotation active** in the application to disable the timer.
