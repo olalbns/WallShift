@@ -17,6 +17,7 @@ def outputs() -> list[str]:
 
 def available() -> list[str]:
     found = []
+    if shutil.which("awww"): found.append("awww")
     if shutil.which("swww"): found.append("swww")
     if shutil.which("hyprpaper"): found.append("hyprpaper")
     return found
@@ -24,6 +25,7 @@ def available() -> list[str]:
 def detect(preferred: str = "auto") -> str:
     choices = available()
     if preferred != "auto" and preferred in choices: return preferred
+    if "awww" in choices: return "awww"
     if "swww" in choices: return "swww"
     if "hyprpaper" in choices: return "hyprpaper"
     raise BackendError("Install swww or hyprpaper first.")
@@ -31,7 +33,9 @@ def detect(preferred: str = "auto") -> str:
 def apply(output: str, image: str, backend: str, transition: str = "fade") -> None:
     image = str(Path(image).expanduser().resolve())
     if not Path(image).is_file(): raise BackendError("The selected image does not exist.")
-    if backend == "swww":
+    if backend == "awww":
+        command("awww", "img", "--outputs", output, image, "--transition-type", transition)
+    elif backend == "swww":
         command("swww", "img", image, "--outputs", output, "--transition-type", transition)
     elif backend == "hyprpaper":
         # hyprpaper IPC is supplied through hyprctl when the daemon is running.

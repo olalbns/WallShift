@@ -2,17 +2,20 @@
 
 GTK4 wallpaper manager for Hyprland. It supports **swww** and **hyprpaper**,
 per-output images, automatic rotation through a systemd user timer, animated
-transitions with swww, and safe color-theme exports for Hyprland, Waybar, and
+transitions with awww/swww, and safe color-theme exports for Hyprland, Waybar, and
 Kitty.
 
 ## Arch dependencies
 
 ```bash
-sudo pacman -S python python-gobject gtk4 python-pillow swww hyprpaper
+sudo pacman -S python python-gobject gtk4 python-pillow awww hyprpaper
 ```
 
-Use either `swww` or `hyprpaper`. WallShift prioritises swww when both are
-available. Start the selected daemon before applying wallpapers.
+Use `awww`, `swww`, or `hyprpaper`. WallShift prioritises **awww** (the modern
+successor to swww), then swww, then hyprpaper. Start the selected daemon before
+applying wallpapers, for example: `awww-daemon &`. Selecting a wallpaper folder
+automatically preselects its first supported image; Apply can also choose an
+image from that folder when none is selected.
 
 ## Run from source
 

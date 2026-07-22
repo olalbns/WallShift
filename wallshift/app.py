@@ -31,7 +31,7 @@ class Window(Gtk.ApplicationWindow):
         subtitle = Gtk.Label(label="Wallpapers, rotation, transitions, and exported color themes", xalign=0); subtitle.add_css_class("dim-label"); root.append(subtitle)
         form = Gtk.Grid(column_spacing=12, row_spacing=10); root.append(form)
         self.output = Gtk.ComboBoxText(); self.reload_outputs()
-        self.engine = Gtk.ComboBoxText(); [self.engine.append_text(item) for item in ("auto", "swww", "hyprpaper")]; self.engine.set_active(("auto", "swww", "hyprpaper").index(self.data["backend"]))
+        self.engine = Gtk.ComboBoxText(); engines = ("auto", "awww", "swww", "hyprpaper"); [self.engine.append_text(item) for item in engines]; self.engine.set_active(engines.index(self.data["backend"]) if self.data["backend"] in engines else 0)
         self.transition = Gtk.ComboBoxText(); [self.transition.append_text(item) for item in ("fade", "wipe", "grow", "outer", "none")]; self.transition.set_active(("fade", "wipe", "grow", "outer", "none").index(self.data.get("transition", "fade")))
         for row, (label, widget) in enumerate((("Output", self.output), ("Backend", self.engine), ("Transition", self.transition))):
             form.attach(Gtk.Label(label=label, xalign=0), 0, row, 1, 1); form.attach(widget, 1, row, 1, 1)
@@ -65,19 +65,39 @@ class Window(Gtk.ApplicationWindow):
         dialog = Gtk.FileChooserNative(title="Choose wallpaper folder", transient_for=self, action=Gtk.FileChooserAction.SELECT_FOLDER, accept_label="Select")
         dialog.connect("response", self.on_folder); dialog.show()
     def on_folder(self, dialog, response):
-        if response == Gtk.ResponseType.ACCEPT and (file := dialog.get_file()): self.folder.set_text(file.get_path() or "")
+        if response == Gtk.ResponseType.ACCEPT and (file := dialog.get_file()):
+            folder = file.get_path() or ""
+            self.folder.set_text(folder)
+            # A folder is immediately useful: preselect its first image so the
+            # Apply button never forces the user through a second chooser.
+            candidates = images(folder)
+            if candidates:
+                self.image = str(candidates[0])
+                self.preview.set_filename(self.image)
+                self.status.set_text(f"Selected {candidates[0].name} from folder.")
+            else:
+                self.status.set_text("No supported image found in this folder.")
         dialog.destroy()
     def settings(self):
         self.data.update({"backend": self.engine.get_active_text() or "auto", "folder": self.folder.get_text(), "interval_minutes": int(self.minutes.get_value()), "transition": self.transition.get_active_text() or "fade"}); config.save(self.data)
     def apply(self, _button):
         try:
-            if not self.image: raise backend.BackendError("Choose an image first.")
-            self.settings(); output = self.current_output(); backend.apply(output, self.image, backend.detect(self.data["backend"]), self.data["transition"])
+            self.settings()
+            # Selecting a folder is enough: choose a random image if no single
+            # image was explicitly picked. This is also convenient for rotation.
+            if not self.image:
+                candidates = images(self.data["folder"])
+                if not candidates: raise backend.BackendError("Choose an image or a folder containing images.")
+                self.image = str(random.choice(candidates)); self.preview.set_filename(self.image)
+            output = self.current_output(); backend.apply(output, self.image, backend.detect(self.data["backend"]), self.data["transition"])
             self.data["wallpapers"][output] = self.image; config.save(self.data); self.status.set_text(f"Applied to {output}.")
         except (backend.BackendError, RuntimeError) as error: self.status.set_text(f"Error: {error}")
     def export(self, _button):
         try:
-            if not self.image: raise RuntimeError("Choose an image first.")
+            if not self.image:
+                candidates = images(self.folder.get_text())
+                if not candidates: raise RuntimeError("Choose an image or a folder containing images.")
+                self.image = str(candidates[0]); self.preview.set_filename(self.image)
             self.status.set_text(f"Theme files exported to {themes.export(self.image)}")
         except RuntimeError as error: self.status.set_text(f"Error: {error}")
     def install_timer(self, _button):
