@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "wallshift"
+version = "0.1.0"
+description = "Wallpaper, rotation and palette manager for Hyprland"
+requires-python = ">=3.10"
+[project.scripts]
+wallshift = "wallshift.app:main"
+[tool.setuptools]
+packages = ["wallshift"]
+[tool.setuptools.data-files]
+"share/applications" = ["data/io.github.olalbns.wallshift.desktop"]
