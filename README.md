@@ -33,3 +33,18 @@ WallShift writes files—without altering existing configuration—to:
 
 Import `hyprland-colors.conf`, `waybar-colors.css`, or `kitty-colors.conf`
 from your own configuration.
+
+## Rotation timer
+
+Choosing a wallpaper folder automatically enables WallShift’s user-level
+systemd timer. The first rotation runs about 15 seconds later, then follows the
+selected interval. Changing the interval rewrites and reloads the timer.
+
+Check it with:
+
+```bash
+systemctl --user status wallshift-rotate.timer
+journalctl --user -u wallshift-rotate.service -n 30 --no-pager
+```
+
+Turn off **Rotation active** in the application to disable the timer.
